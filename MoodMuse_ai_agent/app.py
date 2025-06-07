@@ -1,6 +1,5 @@
 # app.py
 
-# app.py
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -8,7 +7,6 @@ import os
 import random
 from gtts import gTTS
 import base64
-
 
 from utils.llm_handler import get_llm_response
 from utils.spotify_handler import get_track_preview
@@ -35,6 +33,27 @@ if "confirmed_mode" not in st.session_state:
 st.set_page_config(page_title="MoodMuse.ai", page_icon="🧠")
 st.title("🧠 MoodMuse AI Agent")
 st.markdown("## How can I support you today?")
+
+# --- Helper: Text-to-Speech ---
+def text_to_speech_base64(text):
+    tts = gTTS(text)
+    tts.save("quote.mp3")
+    with open("quote.mp3", "rb") as f:
+        audio_bytes = f.read()
+    return base64.b64encode(audio_bytes).decode()
+
+# --- Helper: Display quote and audio ---
+def display_audio_quote():
+    st.subheader("🎧 Spoken Wisdom")
+    book_quote = get_book_quote()
+    st.markdown(f"**📖 Quote:** *{book_quote}*")
+    audio_b64 = text_to_speech_base64(book_quote)
+    audio_html = f"""
+    <audio controls autoplay>
+        <source src="data:audio/mp3;base64,{audio_b64}" type="audio/mp3">
+    </audio>
+    """
+    st.markdown(audio_html, unsafe_allow_html=True)
 
 # --- Step 1: Mode Selection ---
 if not st.session_state.confirmed_mode:
@@ -65,7 +84,6 @@ else:
                     topic = classify_topic(user_input)
                     crisis = is_crisis(user_input)
                     response = get_llm_response(user_input)
-                    quote = get_book_quote()
                     prompt = get_prompt_by_emotion(emotion)
                     add_to_chat(user_input, response)
 
@@ -77,7 +95,7 @@ else:
 
                 st.info(f"**Emotion Detected:** {emotion}  |  **Topic:** {topic}")
                 st.markdown(f"**📝 Journaling Prompt:** {prompt}")
-                st.markdown(f"**💬 Comforting Quote:** *{quote}*")
+                display_audio_quote()
 
                 st.write("---")
                 st.subheader("🧵 Chat History")
@@ -95,30 +113,7 @@ else:
             else:
                 st.warning("Please enter something!")
 
-from gtts import gTTS
-import base64
-
-def text_to_speech_base64(text):
-    tts = gTTS(text)
-    tts.save("quote.mp3")
-    with open("quote.mp3", "rb") as f:
-        audio_bytes = f.read()
-    return base64.b64encode(audio_bytes).decode()
-
-# --- Inside your distraction mode or wherever you're showing the quote ---
-st.subheader("Spoken Wisdom")
-if st.button("Read Out Loud"):
-    with st.spinner("Flipping pages..."):
-        book_quote = get_book_quote()
-        st.markdown(f"**📖 Quote:** *{book_quote}*")
-
-        audio_b64 = text_to_speech_base64(book_quote)
-        audio_html = f"""
-        <audio controls autoplay>
-            <source src="data:audio/mp3;base64,{audio_b64}" type="audio/mp3">
-        </audio>
-        """
-        st.markdown(audio_html, unsafe_allow_html=True)
+        display_audio_quote()
 
         st.subheader("🔍 Book Search")
         book_query = st.text_input("Book topic or keyword:")
@@ -130,25 +125,17 @@ if st.button("Read Out Loud"):
             else:
                 st.warning("Please enter a keyword.")
 
-    # Bonus: Reddit advice for any mode
-    st.write("---")
-    st.subheader("🧵 Reddit Life Advice")
-    reddit_keyword = st.text_input("Mood or keyword for advice:")
-    if st.button("Search Reddit Advice"):
-        if reddit_keyword.strip():
-            with st.spinner("Browsing Reddit..."):
-                for advice in get_reddit_advice(reddit_keyword):
-                    st.markdown(f"- {advice}")
-        else:
-            st.warning("Please enter a keyword.")
+        st.subheader("🧵 Reddit Life Advice")
+        reddit_keyword = st.text_input("Mood or keyword for advice:")
+        if st.button("Search Reddit Advice"):
+            if reddit_keyword.strip():
+                with st.spinner("Browsing Reddit..."):
+                    for advice in get_reddit_advice(reddit_keyword):
+                        st.markdown(f"- {advice}")
+            else:
+                st.warning("Please enter a keyword.")
 
-    # === Back to Home Button ===
-    #if st.button("🔙 Back to Home"):
-        #st.session_state.mode = None
-        #st.session_state.confirmed_mode = False
-        #st.experimental_rerun()
-
-# === Back to Home Button in Sidebar ===
+# --- Back to Home Button in Sidebar ---
 with st.sidebar:
     st.markdown("## Navigation")
     if st.session_state.confirmed_mode:
@@ -156,8 +143,6 @@ with st.sidebar:
             st.session_state.mode = None
             st.session_state.confirmed_mode = False
             st.experimental_rerun()
-
-
     st.markdown("---")
     st.caption("Need a fresh start?")
 
