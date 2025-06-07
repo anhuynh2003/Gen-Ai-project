@@ -1,0 +1,24 @@
+MoodMuse AI Agent
+MoodMuse is a light-hearted and emotionally intelligent Streamlit web app that helps users navigate their moods by offering AI reflections, journaling prompts, uplifting quotes, music suggestions, book recommendations, and internet wisdom — all tailored to how you're feeling.
+
+💡 Mood
+Mode Selection: Choose between:
+"I want to be heard" – Get an AI-generated reflection and emotional support
+"I want a fun distraction" – Receive music, quotes, and book suggestions
+"Surprise Me!" – Randomly pick one for you, plus bonus Reddit advice
+
+💡 Features
+-Spotify Song Suggestions based on your vibe
+-Book Quotes & Recommendations from relevant emotional themes
+-Emotion Detection from your input text
+-Journaling Prompts based on your detected mood
+-Reddit Life Advice pulled by keyword or emotion
+-Audio Playback for quotes (optional TTS integration)
+
+🛠️ Tech Stack
+Frontend: Streamlit
+LLM: Claude API (via AWS bedrock)
+TTS: Optional via pyttsx3 or gTTS
+APIs: Spotify, Reddit (via praw)
+
+Utilities: .env for API keys, modular utils/ folder for clean logic separation
